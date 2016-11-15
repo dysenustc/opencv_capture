@@ -206,32 +206,48 @@ void sharpenImage1(const Mat &image, Mat &result){
      filter2D(image,result,image.depth(),kernel);
 }
 
+
+
 // compute pixel average in center
-void avgPixel_BGR(Mat& image, Scalar avg){
+Scalar avgPixel_BGR(Mat& image){
     int nr = image.rows;
     int nc = image.cols;
-    Scalar sum;
-    if(image.isContinuous()){
-        nc = nc*nr;
-        nr =1;
-    }
-    for(int m=0;m<nr;m++){
-        uchar* data = image.ptr<uchar>(0);
-        for(int n=0;n<nc;n++){
-            sum[0] += data[n*3];
-            sum[1] += data[n*3+1];
-            sum[2] += data[n*3+2];
+    Scalar sum,avg;
+    sum.val[0] = 0;
+    sum.val[1] = 0;
+    sum.val[2] = 0;
+//    if(image.isContinuous()){
+//        nc = nc*nr;
+//        nr =1;
+//    }
+//    cout << (int)image.at<Vec3b>(10,10)[0] << endl;
+    for(int m=10;m<nr-10;m++){
+//        uchar* data = image.ptr<uchar>(0);
+//        cout << (int)data[10] << endl;
+        for(int n=10;n<nc-10;n++){
+            sum.val[0] += (int)image.at<Vec3b>(m,n)[0];
+            sum.val[1] += (int)image.at<Vec3b>(m,n)[1];
+            sum.val[2] += (int)image.at<Vec3b>(m,n)[2];
+//            sum.val[0] += (int)data[n*3];
+//            sum.val[1] += (int)data[n*3+1];
+//            sum.val[2] += (int)data[n*3+2];
         }
     }
-    avg[0] = sum[0]/(image.rows*image.cols);
-    avg[1] = sum[1]/(image.rows*image.cols);
-    avg[2] = sum[2]/(image.rows*image.cols);
+    avg.val[0] = sum.val[0]/((nr-20)*(nc-20));
+    avg.val[1] = sum.val[1]/((nr-20)*(nc-20));
+    avg.val[2] = sum.val[2]/((nr-20)*(nc-20));
+//    cout << image.rows << endl;
+//    cout << image.rows << endl;
+//    cout << avg.val[0] << endl;
+//    cout << avg.val[1] << endl;
+//    cout << avg.val[2] << endl;
+    return avg;
 }
 
 
 int main(int argc, char *argv[])
 {
-        Mat img = imread("/home/dysen/work_opencv/opencv_capture/loc11133.jpg",CV_LOAD_IMAGE_COLOR);
+        Mat img = imread("/home/dysen/work_opencv/opencv_capture/loc4.jpg",CV_LOAD_IMAGE_COLOR);
 //        Mat img = imgread(Rect(270,190,200,200));
 
 //        Mat dstImage, tmpImagel;
@@ -299,21 +315,23 @@ int main(int argc, char *argv[])
 //             RotatedRect  rorect = minAreaRect(contours[k]);
              Mat image1;
              image1 = img(rect1);
+             Scalar average;
+             average = avgPixel_BGR(image1);
+             cout << "pixelB is : " << average.val[0]
+                  << " pixelG is : " << average.val[1]
+                  << " pixelR is : " << average.val[2] << endl;
 
-
-
-
-             int pixelB = image1.at<Vec3b>(10,10)[0];
-             int pixelG = image1.at<Vec3b>(10,10)[1];
-             int pixelR = image1.at<Vec3b>(10,10)[2];
-             cout << "pixelB is : " << pixelB
-                  << " pixelG is : " << pixelG
-                  << " pixelR is : " << pixelR << endl;
+//             int pixelB = image1.at<Vec3b>(10,10)[0];
+//             int pixelG = image1.at<Vec3b>(10,10)[1];
+//             int pixelR = image1.at<Vec3b>(10,10)[2];
+//             cout << "pixelB is : " << pixelB
+//                  << " pixelG is : " << pixelG
+//                  << " pixelR is : " << pixelR << endl;
 
              for(int j =0;j<169;j++){
-                 if((abs(pixelR - loc_transform[j][0])<5) &&
-                         (abs(pixelG - loc_transform[j][1])<5) &&
-                         (abs(pixelB - loc_transform[j][2])<5)){
+                 if((abs(average.val[2] - loc_transform[j][0])<5) &&
+                         (abs(average.val[1] - loc_transform[j][1])<5) &&
+                         (abs(average.val[0] - loc_transform[j][2])<5)){
                      cout << "locationx is:" << loc_transform[j][3]
                              <<" locationy is:" << loc_transform[j][4] << endl;
 //                     break;
