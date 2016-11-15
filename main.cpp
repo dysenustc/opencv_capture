@@ -14,6 +14,8 @@
 // desktop local
 // desktop local 2
 
+
+
 // #include "colorDetect.h"
 using namespace std;
 using namespace cv;
@@ -204,6 +206,28 @@ void sharpenImage1(const Mat &image, Mat &result){
      filter2D(image,result,image.depth(),kernel);
 }
 
+// compute pixel average in center
+void avgPixel_BGR(Mat& image, Scalar avg){
+    int nr = image.rows;
+    int nc = image.cols;
+    Scalar sum;
+    if(image.isContinuous()){
+        nc = nc*nr;
+        nr =1;
+    }
+    for(int m=0;m<nr;m++){
+        uchar* data = image.ptr<uchar>(0);
+        for(int n=0;n<nc;n++){
+            sum[0] += data[n*3];
+            sum[1] += data[n*3+1];
+            sum[2] += data[n*3+2];
+        }
+    }
+    avg[0] = sum[0]/(image.rows*image.cols);
+    avg[1] = sum[1]/(image.rows*image.cols);
+    avg[2] = sum[2]/(image.rows*image.cols);
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -233,9 +257,14 @@ int main(int argc, char *argv[])
         dst.create(img.size(),img.type());
         Mat imggray;
         cvtColor(img,imggray,CV_BGR2GRAY);
+
+//        threshold(imggray,imggray,160,250,THRESH_BINARY);
+//        adaptiveThreshold(imggray,imggray,250,ADAPTIVE_THRESH_MEAN_C,THRESH_BINARY,5,5);
         imshow("imggray",imggray);
         Mat res;
         blur(imggray,res,Size(3,3));
+
+
 //        GaussianBlur(imggray,imggray,Size(7,7),1.5,1.5);
 
         Canny(res,res,20,50);
@@ -270,8 +299,10 @@ int main(int argc, char *argv[])
 //             RotatedRect  rorect = minAreaRect(contours[k]);
              Mat image1;
              image1 = img(rect1);
-//             double pixelb = cvGet2D(image1,10,10).val[0];
-//             uchar* data = image1.ptr<uchar>(10);
+
+
+
+
              int pixelB = image1.at<Vec3b>(10,10)[0];
              int pixelG = image1.at<Vec3b>(10,10)[1];
              int pixelR = image1.at<Vec3b>(10,10)[2];
