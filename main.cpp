@@ -8,6 +8,7 @@
 #include <opencv2/features2d/features2d.hpp>
 
 // push
+// version 1.0
 
 // #include "colorDetect.h"
 using namespace std;
