@@ -11,6 +11,9 @@
 // version 1.0
 // version 1.1
 
+// desktop local
+//desktop local 2
+
 // #include "colorDetect.h"
 using namespace std;
 using namespace cv;
