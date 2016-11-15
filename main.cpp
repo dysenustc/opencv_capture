@@ -12,7 +12,7 @@
 // version 1.1
 
 // desktop local
-//desktop local 2
+// desktop local 2
 
 // #include "colorDetect.h"
 using namespace std;
