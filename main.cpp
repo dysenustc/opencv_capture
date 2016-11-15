@@ -207,7 +207,7 @@ void sharpenImage1(const Mat &image, Mat &result){
 
 int main(int argc, char *argv[])
 {
-        Mat img = imread("/home/dysen/work_opencv/loc11133.jpg",CV_LOAD_IMAGE_COLOR);
+        Mat img = imread("/home/dysen/work_opencv/opencv_capture/loc11133.jpg",CV_LOAD_IMAGE_COLOR);
 //        Mat img = imgread(Rect(270,190,200,200));
 
 //        Mat dstImage, tmpImagel;
