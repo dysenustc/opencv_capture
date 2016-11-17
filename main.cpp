@@ -7,12 +7,13 @@
 #include <opencv2/nonfree/nonfree.hpp>
 #include <opencv2/features2d/features2d.hpp>
 
+//#include "histogram.h"
 // push
 // version 1.0
 // version 1.1
 
 // desktop local
-// desktop local 2
+// desktop local
 
 
 
@@ -212,6 +213,8 @@ void sharpenImage1(const Mat &image, Mat &result){
 Scalar avgPixel_BGR(Mat& image){
     int nr = image.rows;
     int nc = image.cols;
+    int nr_start = nr*0.1;
+    int nc_start = nc*0.1;
     Scalar sum,avg;
     sum.val[0] = 0;
     sum.val[1] = 0;
@@ -221,10 +224,10 @@ Scalar avgPixel_BGR(Mat& image){
 //        nr =1;
 //    }
 //    cout << (int)image.at<Vec3b>(10,10)[0] << endl;
-    for(int m=10;m<nr-10;m++){
+    for(int m=nr_start;m<nr-nr_start;m++){
 //        uchar* data = image.ptr<uchar>(0);
 //        cout << (int)data[10] << endl;
-        for(int n=10;n<nc-10;n++){
+        for(int n=nc_start;n<nc-nc_start;n++){
             sum.val[0] += (int)image.at<Vec3b>(m,n)[0];
             sum.val[1] += (int)image.at<Vec3b>(m,n)[1];
             sum.val[2] += (int)image.at<Vec3b>(m,n)[2];
@@ -233,28 +236,128 @@ Scalar avgPixel_BGR(Mat& image){
 //            sum.val[2] += (int)data[n*3+2];
         }
     }
-    avg.val[0] = sum.val[0]/((nr-20)*(nc-20));
-    avg.val[1] = sum.val[1]/((nr-20)*(nc-20));
-    avg.val[2] = sum.val[2]/((nr-20)*(nc-20));
-//    cout << image.rows << endl;
-//    cout << image.rows << endl;
-//    cout << avg.val[0] << endl;
-//    cout << avg.val[1] << endl;
-//    cout << avg.val[2] << endl;
+    avg.val[0] = sum.val[0]/((nr-nr_start-nr_start)*(nc-nc_start-nc_start));
+    avg.val[1] = sum.val[1]/((nr-nr_start-nr_start)*(nc-nc_start-nc_start));
+    avg.val[2] = sum.val[2]/((nr-nr_start-nr_start)*(nc-nc_start-nc_start));
+//    cout << image.rows << endl;cout << image.rows << endl;
+//    cout << avg.val[0] << endl;cout << avg.val[1] << endl;cout << avg.val[2] << endl;
     return avg;
+}
+
+Scalar Pixel_BGR(Mat& image){
+    int nr = image.rows;
+    int nc = image.cols;
+    Scalar pixel;
+
+    pixel.val[0] = image.at<Vec3b>(nr*0.5,nc*0.5)[0];
+    pixel.val[1] = image.at<Vec3b>(nr*0.5,nc*0.5)[1];
+    pixel.val[2] = image.at<Vec3b>(nr*0.5,nc*0.5)[2];
+//    cout << image.rows << endl;cout << image.rows << endl;
+//    cout << avg.val[0] << endl;cout << avg.val[1] << endl;cout << avg.val[2] << endl;
+    return pixel;
+
+}
+
+
+void ContrastStretch(Mat& image){
+    int nr = image.rows;
+    int nc = image.cols;
+    int data_max=0,data_min=255;
+    if(image.isContinuous()){
+        nc = nc*nr;
+        nr =1;
+    }
+//    minMaxLoc(image,&data_min,&data_max,0,0);
+    for(int m=0;m<nr;m++){
+        uchar* data = image.ptr<uchar>(0);
+        for(int n=0;n<nc;n++){
+            if(data[n]>data_max)
+                data_max = data[n];
+            if(data[n]<data_min)
+                data_min = data[n];
+        }
+    }
+    int data_range = data_max - data_min;
+    for(int m=0;m<nr;m++){
+        uchar* data = image.ptr<uchar>(0);
+        for(int n=0;n<nc;n++){
+            data[n] = (data[n] - data_min)*255/data_range;
+        }
+    }
+}
+
+void ContrastStretchRGB(Mat& image){
+    int nr = image.rows;
+    int nc = image.cols*image.channels();
+    int data_maxR=0,data_minR=255;
+    int data_maxG=0,data_minG=255;
+    int data_maxB=0,data_minB=255;
+    if(image.isContinuous()){
+        nc = nc*nr;
+        nr =1;
+    }
+    for(int m=0;m<nr;m++){
+        uchar* data = image.ptr<uchar>(0);
+        for(int n=0;n<nc;n++){
+            if(data[n]>data_maxB)
+                data_maxB = data[n];
+            if(data[n]<data_minB)
+                data_minB = data[n];
+            n=n+1;
+            if(data[n]>data_maxG)
+                data_maxG = data[n];
+            if(data[n]<data_minG)
+                data_minG = data[n];
+            n=n+1;
+            if(data[n]>data_maxR)
+                data_maxR = data[n];
+            if(data[n]<data_minR)
+                data_minR = data[n];
+        }
+    }
+    int data_rangeR = data_maxR - data_minR;
+    int data_rangeG = data_maxG - data_minG;
+    int data_rangeB = data_maxR - data_minB;
+
+    for(int m=0;m<nr;m++){
+        uchar* data = image.ptr<uchar>(0);
+        for(int n=0;n<nc;n++){
+            data[n] = (data[n] - data_minB)*255/data_rangeB;
+            n=n+1;
+            data[n] = (data[n] - data_minG)*255/data_rangeG;
+            n=n+1;
+            data[n] = (data[n] - data_minR)*255/data_rangeR;
+        }
+    }
+}
+
+// compute adaptive ROI
+void adaptiveimgROI(Mat& image, Mat&result, double hight){
+
+
+
+}
+
+
+void computeLocation(){
+
 }
 
 
 int main(int argc, char *argv[])
 {
-        Mat img = imread("/home/dysen/work_opencv/opencv_capture/loc4.jpg",CV_LOAD_IMAGE_COLOR);
-//        Mat img = imgread(Rect(270,190,200,200));
+        Mat img = imread("/home/dysen/work_opencv/opencv_capture/loc11133.jpg",CV_LOAD_IMAGE_COLOR);
+
+        //        Mat img = imgread(Rect(270,190,200,200));
 
 //        Mat dstImage, tmpImagel;
 //        resize(img,dstImage,Size(img.cols*2, img.rows*2));
 //        sharpenImage1(img,dstImage);
 //        imshow("loc4pyrDown",dstImage);
         imshow("loc4",img);
+        ContrastStretchRGB(img);
+        imshow("loc4con",img);
+
 
 //        Mat imgROI = img(Rect(270,270,100,100));
 //        imshow("aa",imgROI);
@@ -273,20 +376,25 @@ int main(int argc, char *argv[])
         dst.create(img.size(),img.type());
         Mat imggray;
         cvtColor(img,imggray,CV_BGR2GRAY);
+//        imshow("imggray11111",imggray);
+
+//        ContrastStretch(imggray);
+
+
+
+
 
 //        threshold(imggray,imggray,160,250,THRESH_BINARY);
 //        adaptiveThreshold(imggray,imggray,250,ADAPTIVE_THRESH_MEAN_C,THRESH_BINARY,5,5);
         imshow("imggray",imggray);
         Mat res;
-        blur(imggray,res,Size(3,3));
 
-
+        blur(imggray,res,Size(3,3));      
 //        GaussianBlur(imggray,imggray,Size(7,7),1.5,1.5);
 
         Canny(res,res,20,50);
 
 //        Canny(imggray,res,30,75);
-
 //        Canny(imggray,res,40,100);
 //        Canny(imggray,res,50,125);
 //        Canny(imggray,res,60,150);
@@ -300,52 +408,44 @@ int main(int argc, char *argv[])
         vector<vector<Point> > contours;
         findContours(res,contours,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_NONE);
 
-//        Rect rect1 =  boundingRect(contours[1]);
-////             RotatedRect  rorect = minAreaRect(contours[k]);
-//        Mat image1;
-//        image1 = img(rect1);
-//        imshow("img1",image1);
-//        Rect rect2 =  boundingRect(contours[2]);
-////             RotatedRect  rorect = minAreaRect(contours[k]);
-//        Mat image2;
-//        image2 = img(rect2);
-//        imshow("img2",image2);
+        // compute midian block area
+        double area_median;
+        if(contours.size()%2 ==0){
+            Rect rect_median_1 = boundingRect(contours[(int)(contours.size()/2-1)]);
+            Rect rect_median_2 = boundingRect(contours[(int)(contours.size()/2)]);
+            area_median = (rect_median_1.area()+rect_median_2.area()) / 2;
+        }
+        else{
+            Rect rect_median = boundingRect(contours[(int)(contours.size()/2)]);
+            area_median = rect_median.area();
+        }
+//        cout << area_median << endl;
+        int area=0;
         for(size_t k=0;k<contours.size();k++){
-             Rect rect1 =  boundingRect(contours[k]);
+             Rect rect_tmp =  boundingRect(contours[k]);
 //             RotatedRect  rorect = minAreaRect(contours[k]);
-             Mat image1;
-             image1 = img(rect1);
+             Mat image_tmp;
+             image_tmp = img(rect_tmp);
              Scalar average;
-             average = avgPixel_BGR(image1);
+             average = avgPixel_BGR(image_tmp);
              cout << "pixelB is : " << average.val[0]
                   << " pixelG is : " << average.val[1]
                   << " pixelR is : " << average.val[2] << endl;
 
-//             int pixelB = image1.at<Vec3b>(10,10)[0];
-//             int pixelG = image1.at<Vec3b>(10,10)[1];
-//             int pixelR = image1.at<Vec3b>(10,10)[2];
-//             cout << "pixelB is : " << pixelB
-//                  << " pixelG is : " << pixelG
-//                  << " pixelR is : " << pixelR << endl;
-
-             for(int j =0;j<169;j++){
-                 if((abs(average.val[2] - loc_transform[j][0])<5) &&
-                         (abs(average.val[1] - loc_transform[j][1])<5) &&
-                         (abs(average.val[0] - loc_transform[j][2])<5)){
-                     cout << "locationx is:" << loc_transform[j][3]
-                             <<" locationy is:" << loc_transform[j][4] << endl;
-//                     break;
-
+//             if(abs(rect_tmp.area()-area_median)<100){
+                 for(int j =0;j<169;j++){
+                     if((abs(average.val[2] - loc_transform[j][0])<40) &&
+                        (abs(average.val[1] - loc_transform[j][1])<40) &&
+                        (abs(average.val[0] - loc_transform[j][2])<40)){
+                         cout << "locationx is:" << loc_transform[j][3]
+                                 <<" locationy is:" << loc_transform[j][4] << endl;
+//                         break;
+                     }
                  }
-
-             }
-
-//             imshow("img1",image1);
-
-
-//             if(rect.area()>100 && rect.area()<300)
-             cout << "area: " << k+1 << ' '<< rect1.area() << endl;
-
+//                 imshow("img1",image1);
+//                 if(rect.area()>100 && rect.area()<300)
+                 cout << "area: " << ++area << ' ' << rect_tmp.area() << endl;
+//            }
         }
 //        imshow("res", contours);
 
@@ -371,103 +471,3 @@ int main(int argc, char *argv[])
 //        waitKey();
 //        return 0;
 }
-
-
-
-
-//#include "opencv2/core/core.hpp"
-//#include "opencv2/objdetect/objdetect.hpp"
-//#include "opencv2/highgui/highgui.hpp"
-//#include "opencv2/imgproc/imgproc.hpp"
-
-//#include <iostream>
-//#include <stdio.h>
-
-//using namespace std;
-//using namespace cv;
-
-///** Function Headers */
-//void detectAndDisplay( Mat frame );
-
-///** Global variables */
-////-- Note, either copy these two files from opencv/data/haarscascades to your current folder, or change these locations
-//String face_cascade_name = "haarcascade_frontalface_alt.xml";
-//String eyes_cascade_name = "haarcascade_eye_tree_eyeglasses.xml";
-//CascadeClassifier face_cascade;
-//CascadeClassifier eyes_cascade;
-//string window_name = "Capture - Face detection";
-//RNG rng(12345);
-
-///**
-// * @function main
-//*/
-//int main(int argc, char *argv[])
-//{
-//  VideoCapture capture(0);
-//  Mat frame;
-
-
-//  //-- 1. Load the cascades
-////  if( !face_cascade.load( face_cascade_name ) ){ printf("--(!)Error loading\n"); return -1; };
-////  if( !eyes_cascade.load( eyes_cascade_name ) ){ printf("--(!)Error loading\n"); return -1; };
-
-//  //-- 2. Read the video stream
-////  capture.open( -1 );
-//  if( capture.isOpened() )
-//  {
-//    for(;;)
-//    {
-
-//        namedWindow("cam");
-//        capture >> frame;
-//        imshow("cam",frame);
-//        waitKey(30);
-
-////      //-- 3. Apply the classifier to the frame
-////      if( !frame.empty() )
-////       { detectAndDisplay( frame ); }
-////      else
-////       { printf(" --(!) No captured frame -- Break!"); break; }
-
-////      int c = waitKey(10);
-////      if( (char)c == 'c' ) { break; }
-
-//    }
-//  }
-//  return 0;
-//}
-
-///**
-// * @function detectAndDisplay
-// */
-//void detectAndDisplay( Mat frame )
-//{
-//   std::vector<Rect> faces;
-//   Mat frame_gray;
-
-//   cvtColor( frame, frame_gray, COLOR_BGR2GRAY );
-//   equalizeHist( frame_gray, frame_gray );
-//   //-- Detect faces
-//   face_cascade.detectMultiScale( frame_gray, faces, 1.1, 2, 0|CV_HAAR_SCALE_IMAGE, Size(30, 30) );
-
-//   for( size_t i = 0; i < faces.size(); i++ )
-//    {
-//      Point center( faces[i].x + faces[i].width/2, faces[i].y + faces[i].height/2 );
-//      ellipse( frame, center, Size( faces[i].width/2, faces[i].height/2), 0, 0, 360, Scalar( 255, 0, 255 ), 2, 8, 0 );
-
-//      Mat faceROI = frame_gray( faces[i] );
-//      std::vector<Rect> eyes;
-
-//      //-- In each face, detect eyes
-//      eyes_cascade.detectMultiScale( faceROI, eyes, 1.1, 2, 0 |CV_HAAR_SCALE_IMAGE, Size(30, 30) );
-
-//      for( size_t j = 0; j < eyes.size(); j++ )
-//       {
-//         Point eye_center( faces[i].x + eyes[j].x + eyes[j].width/2, faces[i].y + eyes[j].y + eyes[j].height/2 );
-//         int radius = cvRound( (eyes[j].width + eyes[j].height)*0.25 );
-//         circle( frame, eye_center, radius, Scalar( 255, 0, 0 ), 3, 8, 0 );
-//       }
-//    }
-//   //-- Show what you got
-//   imshow( window_name, frame );
-//}
