@@ -339,25 +339,28 @@ void adaptiveimgROI(Mat& image, Mat&result, double hight){
 }
 
 
-void computeLocation(){
+void computeROI(Mat& image,Mat& imageROI, double h){
+    int rect_length,rect_width,length_begin,width_begin;
+    rect_length = (int)120/h; //parameter estimate
+    rect_width = (int)120/h; //4:3
+    length_begin = (int)(640-rect_length)/2;
+    width_begin = (int)(426-rect_width)/2;
+
+    imageROI = image(Rect(length_begin,width_begin,rect_length,rect_width));
 
 }
 
 
 int main(int argc, char *argv[])
 {
-        Mat img = imread("/home/dysen/work_opencv/opencv_capture/loc11133.jpg",CV_LOAD_IMAGE_COLOR);
-
-        //        Mat img = imgread(Rect(270,190,200,200));
-
-//        Mat dstImage, tmpImagel;
-//        resize(img,dstImage,Size(img.cols*2, img.rows*2));
-//        sharpenImage1(img,dstImage);
-//        imshow("loc4pyrDown",dstImage);
-        imshow("loc4",img);
-        ContrastStretchRGB(img);
-        imshow("loc4con",img);
-
+        Mat img = imread("/home/dysen/work_opencv/opencv_capture/6.jpg",CV_LOAD_IMAGE_COLOR);
+//        cout << img.rows << img.cols << endl;
+        Mat imgROI;
+        computeROI(img,imgROI,1);
+//        cout << imgROI.rows << imgROI.cols << endl;
+        imshow("loc4",imgROI);
+//        ContrastStretchRGB(img);
+//        imshow("loc4con",img);
 
 //        Mat imgROI = img(Rect(270,270,100,100));
 //        imshow("aa",imgROI);
@@ -373,16 +376,12 @@ int main(int argc, char *argv[])
 
 //        imshow("img_keypoints_1",img_keypoints_1);
         Mat dst;
-        dst.create(img.size(),img.type());
+        dst.create(imgROI.size(),imgROI.type());
         Mat imggray;
-        cvtColor(img,imggray,CV_BGR2GRAY);
+        cvtColor(imgROI,imggray,CV_BGR2GRAY);
 //        imshow("imggray11111",imggray);
 
-//        ContrastStretch(imggray);
-
-
-
-
+        ContrastStretch(imggray);
 
 //        threshold(imggray,imggray,160,250,THRESH_BINARY);
 //        adaptiveThreshold(imggray,imggray,250,ADAPTIVE_THRESH_MEAN_C,THRESH_BINARY,5,5);
@@ -402,7 +401,7 @@ int main(int argc, char *argv[])
 //        Canny(imggray,res,80,200);
 
         dst = Scalar::all(0);
-        img.copyTo(dst,res);
+        imgROI.copyTo(dst,res);
         imshow("bbb",dst);
 
         vector<vector<Point> > contours;
@@ -410,6 +409,9 @@ int main(int argc, char *argv[])
 
         // compute midian block area
         double area_median;
+        double avg_locx=0,avg_locy=0;
+        int num=0;
+
         if(contours.size()%2 ==0){
             Rect rect_median_1 = boundingRect(contours[(int)(contours.size()/2-1)]);
             Rect rect_median_2 = boundingRect(contours[(int)(contours.size()/2)]);
@@ -419,7 +421,7 @@ int main(int argc, char *argv[])
             Rect rect_median = boundingRect(contours[(int)(contours.size()/2)]);
             area_median = rect_median.area();
         }
-//        cout << area_median << endl;
+        cout << area_median << endl;
         int area=0;
         for(size_t k=0;k<contours.size();k++){
              Rect rect_tmp =  boundingRect(contours[k]);
@@ -434,18 +436,28 @@ int main(int argc, char *argv[])
 
 //             if(abs(rect_tmp.area()-area_median)<100){
                  for(int j =0;j<169;j++){
-                     if((abs(average.val[2] - loc_transform[j][0])<40) &&
-                        (abs(average.val[1] - loc_transform[j][1])<40) &&
-                        (abs(average.val[0] - loc_transform[j][2])<40)){
+                     if((abs(average.val[2] - loc_transform[j][0])<30) &&
+                        (abs(average.val[1] - loc_transform[j][1])<30) &&
+                        (abs(average.val[0] - loc_transform[j][2])<30)){
                          cout << "locationx is:" << loc_transform[j][3]
                                  <<" locationy is:" << loc_transform[j][4] << endl;
+                         avg_locx += loc_transform[j][3];
+                         avg_locy += loc_transform[j][4];
+                         num++;
 //                         break;
-                     }
+                     } 
                  }
+
 //                 imshow("img1",image1);
 //                 if(rect.area()>100 && rect.area()<300)
                  cout << "area: " << ++area << ' ' << rect_tmp.area() << endl;
 //            }
+        }
+        if(num!=0){
+           avg_locx = avg_locx/num;
+           avg_locy = avg_locy/num;
+           cout << "avg_locx is:" << avg_locx
+                <<" avg_locy is:" << avg_locy << endl;
         }
 //        imshow("res", contours);
 
@@ -466,8 +478,4 @@ int main(int argc, char *argv[])
 
 //        clock_t diff = clock() - system_start;
 //        cout << "output time" << diff << endl;
-//        threshold(res, res, 128, 255, THRESH_BINARY);
-//        imshow("mysobel", res);
-//        waitKey();
-//        return 0;
 }
