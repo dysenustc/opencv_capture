@@ -353,44 +353,34 @@ void computeROI(Mat& image,Mat& imageROI, double h){
 
 int main(int argc, char *argv[])
 {
-        Mat img = imread("/home/dysen/work_opencv/opencv_capture/6.jpg",CV_LOAD_IMAGE_COLOR);
-//        cout << img.rows << img.cols << endl;
-        Mat imgROI;
-        computeROI(img,imgROI,1);
-//        cout << imgROI.rows << imgROI.cols << endl;
-        imshow("loc4",imgROI);
-//        ContrastStretchRGB(img);
-//        imshow("loc4con",img);
 
-//        Mat imgROI = img(Rect(270,270,100,100));
-//        imshow("aa",imgROI);
+    // parameter define
+    Mat frame, frameROI, dst,img_gray, res;
 
-//        int minHessian =400;
-//        SurfFeatureDetector detector(minHessian);
-//        SurfFeatureDetector (SURF);
-//        vector<KeyPoint> keypoints_1;
-//        detector.detect(img,keypoints_1);
+    double duration_time;
 
-//        Mat img_keypoints_1;
-//        drawKeypoints(img,keypoints_1,img_keypoints_1, Scalar::all(-1),DrawMatchesFlags::DEFAULT);
+    VideoCapture cap(0);
+    cap.set(CV_CAP_PROP_FRAME_WIDTH,640);
+    cap.set(CV_CAP_PROP_FRAME_HEIGHT,480);
+    if(!cap.isOpened())
+        return -1;
 
-//        imshow("img_keypoints_1",img_keypoints_1);
-        Mat dst;
-        dst.create(imgROI.size(),imgROI.type());
-        Mat imggray;
-        cvtColor(imgROI,imggray,CV_BGR2GRAY);
+    for(;;){
+
+        cap >> frame;
+        computeROI(frame,frameROI,1);
+        imshow("frameROI",frameROI);
+        dst.create(frameROI.size(),frameROI.type());
+        cvtColor(frameROI,img_gray,CV_BGR2GRAY);
 //        imshow("imggray11111",imggray);
-
-        ContrastStretch(imggray);
+        ContrastStretch(img_gray);
 
 //        threshold(imggray,imggray,160,250,THRESH_BINARY);
 //        adaptiveThreshold(imggray,imggray,250,ADAPTIVE_THRESH_MEAN_C,THRESH_BINARY,5,5);
-        imshow("imggray",imggray);
-        Mat res;
+        imshow("imggray",img_gray);
 
-        blur(imggray,res,Size(3,3));      
+        blur(img_gray,res,Size(3,3));
 //        GaussianBlur(imggray,imggray,Size(7,7),1.5,1.5);
-
         Canny(res,res,20,50);
 
 //        Canny(imggray,res,30,75);
@@ -401,7 +391,7 @@ int main(int argc, char *argv[])
 //        Canny(imggray,res,80,200);
 
         dst = Scalar::all(0);
-        imgROI.copyTo(dst,res);
+        frameROI.copyTo(dst,res);
         imshow("bbb",dst);
 
         vector<vector<Point> > contours;
@@ -427,7 +417,7 @@ int main(int argc, char *argv[])
              Rect rect_tmp =  boundingRect(contours[k]);
 //             RotatedRect  rorect = minAreaRect(contours[k]);
              Mat image_tmp;
-             image_tmp = img(rect_tmp);
+             image_tmp = frame(rect_tmp);
              Scalar average;
              average = avgPixel_BGR(image_tmp);
              cout << "pixelB is : " << average.val[0]
@@ -445,7 +435,7 @@ int main(int argc, char *argv[])
                          avg_locy += loc_transform[j][4];
                          num++;
 //                         break;
-                     } 
+                     }
                  }
 
 //                 imshow("img1",image1);
@@ -459,23 +449,15 @@ int main(int argc, char *argv[])
            cout << "avg_locx is:" << avg_locx
                 <<" avg_locy is:" << avg_locy << endl;
         }
-//        imshow("res", contours);
+        if(waitKey(30)>=0)
+            break;
+    }
+    return 0;
 
-        Mat  result(res.size(),CV_8U,Scalar(255));
-        drawContours(result,contours,-1,Scalar(0),2);
-//        imshow("resultImage",result);
-        waitKey();
-        return 0;
-
-
-//        cvtColor(img, img, CV_BGR2GRAY);
-////        imshow("aaa",img);
-//        Mat res;
-//        clock_t system_start = clock();
-
-//        Canny(img, res, 50, 110);
-////        imshow("aaa",res);
-
-//        clock_t diff = clock() - system_start;
-//        cout << "output time" << diff << endl;
+//        Mat img = imread("/home/dysen/work_opencv/opencv_capture/6.jpg",CV_LOAD_IMAGE_COLOR);
+////        cout << img.rows << img.cols << endl;
+//        Mat imgROI;
+//        computeROI(img,imgROI,1);
+////        cout << imgROI.rows << imgROI.cols << endl;
+//        imshow("loc4",imgROI);
 }
